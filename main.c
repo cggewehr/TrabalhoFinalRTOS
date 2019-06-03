@@ -117,6 +117,24 @@ void* updateBreaklights(){
     }
 }
 
+void* updateReverselights(){
+
+    while(1){
+
+        pthread_mutex_lock(&mutex);
+
+        if(carState.Gear == 0 && carState.ClutchBite && carInterface.GasPedalPctg > 5){
+            carState.ReverseLight = true;
+        }
+        else{
+            carState.ReverseLight = false;
+        }
+
+        pthread_mutex_unlock(&mutex);
+
+    }
+}
+
 void* updateWipers(){
 
     // wait for timer
@@ -168,10 +186,44 @@ void* updateIgnition(){
     }
 }
 
+void setParam(){
+
+    carParam.gearRatios[5] = {2.56, 2.82, 1.84, 1.32, 1.0}; // Reverse, 1st, 2nd, 3rd, 4th
+    carParam.diffRatio = 3.0;
+    carParam.tyreDiameter = 34.8333333334; // in inches
+
+    carParam.maxRPM = 6000; // Estimated
+    carParam.maxSpeed = 125; // in mph
+
+    carParam.BeamIntensityPctg[3] = {0, 50, 100};
+    carParam.WiperIntensityPctg[5] = {0, 25, 50, 75, 100};
+}
+
+void resetState(){
+
+    carState.RPM = 0;
+    carState.Speed = 0;
+    carState.GasPctg = 100;
+    carState.ClutchBite = false;
+    carState.Ignition = false;
+
+    //  Lights
+    carState.LeftBlinker = false;
+    carState.RightBlinker = false;
+    carState.HeadlightsPctg = 0;
+    carState.Taillights = false;
+    carState.Breaklights = false;
+    carState.ReverseLight = false;
+
+    //  Wipers
+    carState.wiperSpeed = 0;
+
+}
+
 int main(){
 
-
-
+    setParam();
+    resetState();
 
 
     pthread_exit(NULL);
