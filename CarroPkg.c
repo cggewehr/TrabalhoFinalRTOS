@@ -6,8 +6,11 @@ typedef struct CarState{
     int RPM;
     int Speed;
     int GasPctg;
-    bool ClutchBite;
     bool Ignition;
+
+//  Transmission
+    int Gear;
+    bool ClutchBite;
 
 //  Lights
     bool LeftBlinker;
@@ -29,6 +32,8 @@ typedef struct CarInterface{
     int BrakePedalPctg;
     int ClutchPedalPctg;
 
+    int Gear;
+
     int turnSignalPos;
     bool HazardLightsButton;
 
@@ -41,21 +46,40 @@ typedef struct CarInterface{
     int tachometer;
     int speedometer;
 
-}CarInterface_t;
+} CarInterface_t;
 
 typedef struct CarParam{
 
 //  Based on Ford Falcon XB with 351ci V8 / manual 4 speed transmission
 //  More info @ https://www.uniquecarsandparts.com.au/falcon_XB_technical_specifications
 
-    float gearRatios[5] = {2.56, 2.82, 1.84, 1.32, 1.0}; // Reverse, 1st, 2nd, 3rd, 4th
-    float diffRatio = 3.0;
-    float tyreDiameter = 34.8333333334; // in inches
+    float gearRatios[5]; // Reverse, 1st, 2nd, 3rd, 4th
+    float diffRatio;
+    float tyreDiameter; // in inches
 
-    int maxRPM = 6000; // Estimated
-    int maxSpeed = 125; // in mph
+    int maxRPM; // Estimated
+    int maxSpeed; // in mph
 
-    int BeamIntensityPctg[3] = {0, 50, 100};
-    int WiperIntensityPctg[5] = {0, 25, 50, 75, 100};
+    int BeamIntensityPctg[3];
+    int WiperIntensityPctg[5];
+
+    int TransmissionLossPctg;
 
 } CarParam_t;
+
+typedef struct ThreadContainer{
+
+    pthread_t updateClutchBite;
+    pthread_t updateSpeed;
+    pthread_t updateRPM;
+    pthread_t updateGear;
+    pthread_t updateFuel;
+    pthread_t updateBlinkers;
+    pthread_t updateHeadlights;
+    pthread_t updateBreaklights;
+    pthread_t updateReverselights;
+    pthread_t updateWipers;
+    pthread_t updateInterface;
+    pthread_t updateIgnition;
+
+} ThreadContainer_t;

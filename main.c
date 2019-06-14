@@ -8,10 +8,13 @@ pthread_cond_t condVar = PTHREAD_COND_INITIALIZER;
 CarState_t carState;
 CarParam_t carParam;
 CarInterface_t carInterface;
+ThreadContainer_t ThreadContainer;
 
 void* updateClutchBite(){
 
     while(1){
+
+     // wait for timer
 
         pthread_mutex_lock(&mutex);
 
@@ -22,7 +25,58 @@ void* updateClutchBite(){
             carState.ClutchBite = false; // Car is on idle
         }
 
+        pthread_mutex_unlock(&mutex);
+
+    }
+}
+
+void* updateSpeed(){
+
+    while(1){
+
+        // wait for timer
+
         pthread_mutex_lock(&mutex);
+
+        carState.Speed = (0.00595) * (carState.RPM * carParam.tyreDiameter) / 2*(carParam.gearRatios[carState.Gear] * carParam.diffRatio) // speed in miles/hour
+
+        pthread_mutex_unlock(&mutex);
+
+    }
+}
+
+void* updateRPM(){
+
+    while(1){
+
+        // wait for timer
+
+        pthread_mutex_lock(&mutex);
+
+        if (carState.Ignition){
+            carState.RPM = ( (carInterface.GasPedalPctg / 100) * carParam.maxRPM)
+            carState.RPM = carState.RPM * (carParam.TransmissionLossPctg / 100);// Acounts for transmisson loss
+        }
+        else{
+            carState.RPM = 0;
+        }
+
+        pthread_mutex_unlock(&mutex);
+
+    }
+}
+
+void* updateGear(){
+
+    while(1){
+
+        // wait for timer
+
+        pthread_mutex_lock(&mutex);
+
+        carState.Gear = carInterface.Gear;
+
+        pthread_mutex_unlock(&mutex);
 
     }
 }
@@ -40,7 +94,7 @@ void* updateFuel(){
             pthread_cond_wait(&condVar, &mutex);
         }
 
-        carState.GasPctg -= (carState.RPM/carParam.maxRPM)*0.15;
+        carState.GasPctg -= (carState.RPM/carParam.maxRPM)*0.001;
 
         pthread_mutex_unlock(&mutex);
     }
@@ -118,6 +172,8 @@ void* updateBreaklights(){
 }
 
 void* updateReverselights(){
+
+    // wait for timer
 
     while(1){
 
@@ -197,12 +253,16 @@ void setParam(){
 
     carParam.BeamIntensityPctg[3] = {0, 50, 100};
     carParam.WiperIntensityPctg[5] = {0, 25, 50, 75, 100};
+
+    carParam.TransmissionLossPctg = 5;
 }
 
 void resetState(){
 
+    //  Engine
     carState.RPM = 0;
     carState.Speed = 0;
+    carState.Gear = 0;
     carState.GasPctg = 100;
     carState.ClutchBite = false;
     carState.Ignition = false;
@@ -217,14 +277,30 @@ void resetState(){
 
     //  Wipers
     carState.wiperSpeed = 0;
-
 }
 
 int main(){
 
+    ThreadContainer_t ThreadContainer;
+
     setParam();
     resetState();
 
+    // Criar threads
+    pthread_create( &(ThreadContainer.updateClutchBite) , NULL, teste, NULL);
+    pthread_create( &(ThreadContainer.updateSpeed) , NULL, teste, NULL);
+    pthread_create( &(ThreadContainer.updateRPM) , NULL, teste, NULL);
+    pthread_create( &(ThreadContainer.updateGear) , NULL, teste, NULL);
+    pthread_create( &(ThreadContainer.updateFuel) , NULL, teste, NULL);
+    pthread_create( &(ThreadContainer.updateBlinkers) , NULL, teste, NULL);
+    pthread_create( &(ThreadContainer.updateHeadlights) , NULL, teste, NULL);
+    pthread_create( &(ThreadContainer.updateBreaklights) , NULL, teste, NULL);
+    pthread_create( &(ThreadContainer.updateReverselights) , NULL, teste, NULL);
+    pthread_create( &(ThreadContainer.updateWipers) , NULL, teste, NULL);
+    pthread_create( &(ThreadContainer.updateInterface) , NULL, teste, NULL);
+    pthread_create( &(ThreadContainer.updateIgnition) , NULL, teste, NULL);
+
+    // Criar interface de comunicação 
 
     pthread_exit(NULL);
 
