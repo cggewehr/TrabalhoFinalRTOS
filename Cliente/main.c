@@ -71,14 +71,16 @@ int main(int argc, char *argv[]){
         for(i = 0 ; i < 5 ; i++){
             arg0compare[i] = tolower(arg0compare[i]);
         }
+        arg0compare[4] = '\0';
+        printf("%s\n", arg0compare);
 
-        if(strcmp(arg0compare, "exit") || strcmp(arg0compare, "quit") == 0){
+        if(strcmp(arg0compare, "exit") == 0 || strcmp(arg0compare, "quit") == 0){
             break; // Close socket and exit program
         }
         else if(strcmp(arg0compare, "help") == 0){
             printf("Comandos validos: ");
-            printf("\n\t Set:        Atribui a variavel desejada o valor desejado (Set variavel valor)");
-            printf("\n\t Print:      Retorna ao usuario o valor da variavel desejada (Print variavel)");
+            printf("\n\t Set:        Atribui a variavel desejada o valor desejado (Set <variavel> <valor>)");
+            printf("\n\t Print:      Retorna ao usuario o valor da variavel desejada (Print <variavel>)");
             printf("\n\t Exit/Quit:  Sai do programa (Exit/Quit)");
             printf("\n\t Help :      Exibe novamente esse menu (Help)");
         }

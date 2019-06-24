@@ -200,14 +200,22 @@ int main(int argc, char *argv[]){
 
         if(strcmp(args[0], "set") == 0){
 
+            // Clear buffer
+            memset(buffer, '\0', 240);
+
             // Sets return message
             strcpy(buffer, "Variavel ");
+            printf("%s\n", buffer);
             strcat(buffer, args[1]);
+            printf("%s\n", buffer);
             strcat(buffer, " setada para o valor ");
+            printf("%s\n", buffer);
             strcat(buffer, args[2]);
+            printf("%s\n", buffer);
 
             if(strcmp(args[1], "gaspedalpctg") == 0){
                 carInterface.GasPedalPctg = atoi(args[3]);
+                printf("%d\n", carInterface.GasPedalPctg);
             }
             else if(strcmp(args[1], "brakepedalpctg") == 0){
                 carInterface.BrakePedalPctg = atoi(args[3]);
