@@ -76,7 +76,7 @@ void resetState(){
     carState.wiperSpeed = 0;
 }
 
-void argparse(char buffer[160], char* args[3]){
+void argparse(char buffer[240], char* args[3]){
 
     int i = 0;
     char* argPtr;
