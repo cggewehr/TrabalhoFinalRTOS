@@ -26,7 +26,7 @@ int main(int argc, char *argv[]){
 
     // Cria socket TCP IPv4 e define porta a ser utilizada
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
-    portno = atoi(argv[1]);
+    portno = atoi(argv[2]);
 
     if ( sockfd < 0 ) {
         printf("Erro ao criar o socket\n");
@@ -35,14 +35,14 @@ int main(int argc, char *argv[]){
         printf("Socket criado com sucesso\n");
     }
 
-    server = gethostbyname(argv[1]);
+    printf("%s\n", argv[1]);
 
     // Set serv_addr
     bzero((char *) &serv_addr, sizeof(serv_addr));
     serv_addr.sin_family = AF_INET;
-    //inet_aton(argv[1], &serv_addr.sin_addr);
-    //serv_addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-    bcopy( (char *) server->h_addr, (char *) &serv_addr.sin_addr.s_addr, server->h_length );
+    serv_addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+//    inet_aton(argv[1], &serv_addr.sin_addr);
+//    inet_aton(argv[1], &serv_addr.sin_addr.s_addr);
     serv_addr.sin_port = htons(portno);
 
     // Creates connection
@@ -67,7 +67,7 @@ int main(int argc, char *argv[]){
         write(sockfd, buffer, strlen(buffer));
 
         // Checks for "help" or "exit/quit" command
-        strncpy(arg0compare, buffer, 4);
+        strncpy(arg0compare, buffer, 5);
         for(i = 0 ; i < 5 ; i++){
             arg0compare[i] = tolower(arg0compare[i]);
         }
@@ -77,7 +77,7 @@ int main(int argc, char *argv[]){
         }
         else if(strcmp(arg0compare, "help") == 0){
             printf("Comandos validos: ");
-            printf("\n\t Set:        Atribui a variavel deseja o valor desejado (Set variavel valor)");
+            printf("\n\t Set:        Atribui a variavel desejada o valor desejado (Set variavel valor)");
             printf("\n\t Print:      Retorna ao usuario o valor da variavel desejada (Print variavel)");
             printf("\n\t Exit/Quit:  Sai do programa (Exit/Quit)");
             printf("\n\t Help :      Exibe novamente esse menu (Help)");
