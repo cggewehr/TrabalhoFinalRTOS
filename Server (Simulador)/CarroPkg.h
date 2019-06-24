@@ -54,6 +54,7 @@ typedef struct CarInterface{
 //  Output
     int tachometer;
     int speedometer;
+    int gasPctg;
 
 } CarInterface_t;
 
@@ -73,6 +74,8 @@ typedef struct CarParam{
     int WiperIntensityPctg[5];
 
     int TransmissionLossPctg;
+
+    float blinkerPeriod; // in seconds
 
 } CarParam_t;
 

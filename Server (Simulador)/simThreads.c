@@ -28,6 +28,7 @@ void* updateSpeed(){
         pthread_mutex_lock(&mutex);
 
         carState.Speed = (0.00595) * (carState.RPM * carParam.tyreDiameter) / 2*(carParam.gearRatios[carState.Gear] * carParam.diffRatio) // speed in miles/hour
+        carInterface.speedometer = carState.Speed;
 
         pthread_mutex_unlock(&mutex);
 
@@ -49,6 +50,8 @@ void* updateRPM(){
         else{
             carState.RPM = 0;
         }
+
+        carInterface.tachometer = carState.RPM;
 
         pthread_mutex_unlock(&mutex);
 
@@ -84,6 +87,7 @@ void* updateFuel(){
         }
 
         carState.GasPctg -= (carState.RPM/carParam.maxRPM)*0.001;
+        carInterface.gasPctg = carState.GasPctg;
 
         pthread_mutex_unlock(&mutex);
     }
@@ -97,11 +101,14 @@ void* updateBlinkers(){
 
     while(1){
 
+        wait_period (&info);
+
         pthread_mutex_lock(&mutex);
 
         if(carInterface.HazardLightsButton){
+            // Synchronizes both blinkers
             carState.LeftBlinker = !carState.LeftBlinker;
-            carState.RightBlinker = !carState.RightBlinker;
+            carState.RightBlinker = carState.LefttBlinker;
         }
         else if(carInterface.turnSignalPos == -1){ // left blinker
             carState.LeftBlinker = !carState.LeftBlinker;

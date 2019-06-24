@@ -4,8 +4,7 @@ struct periodic_info
     sigset_t alarm_sig;
 };
 
-static int make_periodic (int unsigned period, struct periodic_info *info)
-{
+static int make_periodic (int unsigned period, struct periodic_info *info){
     static int next_sig;
     int ret;
     unsigned int ns;
@@ -46,8 +45,7 @@ static int make_periodic (int unsigned period, struct periodic_info *info)
     return ret;
 }
 
-static void wait_period (struct periodic_info *info)
-{
+static void wait_period (struct periodic_info *info){
     int sig;
     sigwait (&(info->alarm_sig), &sig);
 }
