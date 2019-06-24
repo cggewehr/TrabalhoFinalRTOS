@@ -79,7 +79,6 @@ void resetState(){
 void argparse(char buffer[160], char* args[3]){
 
     int i = 0;
-    char espaco[2] = " ";
     char* argPtr;
 
     // Convert all chars to lowercase
@@ -91,10 +90,9 @@ void argparse(char buffer[160], char* args[3]){
     }
 
     // Set arguments (finds ' ' between command and its arguments)
-    for(i = 0 ; i < 3 ; i++){
-        argPtr = strtok(buffer, espaco);
-        args[i] = argPtr;
-    }
+    args[0] = strtok(buffer, " ");
+    args[1] = strtok(NULL, " ");
+    args[2] = strtok(NULL, " ");
 
 }
 
@@ -197,6 +195,8 @@ int main(int argc, char *argv[]){
 
         // Locks mutex to execute given command
         pthread_mutex_lock(&mutex);
+
+        printf("args[0]: %s args[1]: %s args[2]: %s\n", args[0], args[1], args[2]);
 
         if(strcmp(args[0], "set") == 0){
 
