@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 
 // Network socket
 #include <sys/types.h>
@@ -28,8 +29,10 @@ int main(int argc, char *argv[]){
     portno = atoi(argv[1]);
 
     if ( sockfd < 0 ) {
-        printf("Erro abrindo o socket\n");
+        printf("Erro ao criar o socket\n");
         exit(1);
+    } else {
+        printf("Socket criado com sucesso\n");
     }
 
     server = gethostbyname(argv[1]);
@@ -37,16 +40,21 @@ int main(int argc, char *argv[]){
     // Set serv_addr
     bzero((char *) &serv_addr, sizeof(serv_addr));
     serv_addr.sin_family = AF_INET;
-    bcopy( (char*) server->h_addr, (char *) &serv_addr.sin_addr.s_addr, server->h_len);
+    //inet_aton(argv[1], &serv_addr.sin_addr);
+    //serv_addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    bcopy( (char *) server->h_addr, (char *) &serv_addr.sin_addr.s_addr, server->h_length );
     serv_addr.sin_port = htons(portno);
 
     // Creates connection
-    if ( connect(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr) ) < 0 ) {
+    if ( connect(sockfd, (struct sockaddr *) &serv_addr, (socklen_t) sizeof(serv_addr) ) < 0 ) {
         printf("Erro ao conectar\n");
+        printf("%s\n", strerror(errno));
         exit(1);
+    } else {
+        printf("Conectado ao ip %s na porta %s \n", argv[1], argv[2]);
     }
 
-    while(true){
+    while(1){
 
         // Clear buffer
         bzero(buffer, 240);
@@ -59,7 +67,7 @@ int main(int argc, char *argv[]){
         write(sockfd, buffer, strlen(buffer));
 
         // Checks for "help" or "exit/quit" command
-        strncpy(arg0compare, buffer, 4)
+        strncpy(arg0compare, buffer, 4);
         for(i = 0 ; i < 5 ; i++){
             arg0compare[i] = tolower(arg0compare[i]);
         }
@@ -82,7 +90,7 @@ int main(int argc, char *argv[]){
         read(sockfd, buffer, 240);
 
         // Display return message
-        printf("%s\n", buffer)
+        printf("%s\n", buffer);
     }
 
     // Close socket and exit

@@ -1,13 +1,9 @@
 #include <stdbool.h>
+#include <pthread.h>
 
 // Global Variables
-pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
-pthread_cond_t condVar = PTHREAD_COND_INITIALIZER;
-
-CarState_t carState;
-CarParam_t carParam;
-CarInterface_t carInterface;
-ThreadContainer_t ThreadContainer;
+extern pthread_mutex_t mutex;
+extern pthread_cond_t condVar;
 
 typedef struct CarState{
 
@@ -34,6 +30,8 @@ typedef struct CarState{
 
 } CarState_t;
 
+extern CarState_t carState;
+
 typedef struct CarInterface{
 
 //  Input
@@ -58,6 +56,8 @@ typedef struct CarInterface{
 
 } CarInterface_t;
 
+extern CarInterface_t carInterface;
+
 typedef struct CarParam{
 
 //  Based on Ford Falcon XB with 351ci V8 / manual 4 speed transmission
@@ -79,6 +79,8 @@ typedef struct CarParam{
 
 } CarParam_t;
 
+extern CarParam_t carParam;
+
 typedef struct ThreadContainer{
 
     pthread_t updateClutchBite;
@@ -95,3 +97,5 @@ typedef struct ThreadContainer{
     pthread_t updateIgnition;
 
 } ThreadContainer_t;
+
+extern ThreadContainer_t ThreadContainer;

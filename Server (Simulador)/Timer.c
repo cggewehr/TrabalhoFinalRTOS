@@ -1,5 +1,9 @@
-struct periodic_info
-{
+#include <signal.h>
+#include <time.h>
+#include <unistd.h>
+#include <stdlib.h>
+
+extern struct periodic_info{
     int sig;
     sigset_t alarm_sig;
 };
@@ -30,7 +34,7 @@ static int make_periodic (int unsigned period, struct periodic_info *info){
     sigev.sigev_notify = SIGEV_SIGNAL;
     sigev.sigev_signo = info->sig;
     sigev.sigev_value.sival_ptr = (void *) &timer_id;
-    ret = timer_create (CLOCK_MONOTONIC, &sigev, &timer_id);
+    ret = timer_create(CLOCK_MONOTONIC, &sigev, &timer_id);
     if (ret == -1)
         return ret;
 
@@ -41,7 +45,7 @@ static int make_periodic (int unsigned period, struct periodic_info *info){
     itval.it_interval.tv_nsec = ns;
     itval.it_value.tv_sec = sec;
     itval.it_value.tv_nsec = ns;
-    ret = timer_settime (timer_id, 0, &itval, NULL);
+    ret = timer_settime(timer_id, 0, &itval, NULL);
     return ret;
 }
 

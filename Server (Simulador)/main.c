@@ -1,7 +1,9 @@
 // System libraries
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <pthread.h>
+#include <ctype.h>
 #include <signal.h>
 #include <time.h>
 #include <unistd.h>
@@ -11,13 +13,17 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include <netdb.h> 
-#include <arpa/inet.h>      
+#include <netdb.h>
+#include <arpa/inet.h>
 
 // Program header files
-#include "carroPkg.h"
-#include "timer.h"
+#include "CarroPkg.h"
+#include "Timer.h"
 #include "simThreads.h"
+
+CarParam_t carParam;
+CarState_t carState;
+CarInterface_t carInterface;
 
 void setParam(){
 
@@ -73,7 +79,7 @@ void resetState(){
 void argparse(char buffer[160], char* args[3]){
 
     int i = 0;
-    const char espaço[2] = " ";
+    char espaco[2] = " ";
     char* argPtr;
 
     // Convert all chars to lowercase
@@ -86,7 +92,7 @@ void argparse(char buffer[160], char* args[3]){
 
     // Set arguments (finds ' ' between command and its arguments)
     for(i = 0 ; i < 3 ; i++){
-        argPtr = strtok(buffer, espaço);
+        argPtr = strtok(buffer, espaco);
         args[i] = argPtr;
     }
 
@@ -97,8 +103,9 @@ int main(int argc, char *argv[]){
     ThreadContainer_t ThreadContainer; // Struct to save thread ID's
     sigset_t alarm_sig; // sigset for periodic threads
 
+    int i = 0;
     struct sockaddr_in serv_addr, cli_addr; // Socket struct
-    socklen_t clilen; 
+    socklen_t clilen;
     int newsockfd, sockfd, portno; // Socket port
     char buffer[240], printReturn[80];
     char* args[4];
@@ -120,27 +127,35 @@ int main(int argc, char *argv[]){
     if ( sockfd < 0 ) {
         printf("Erro abrindo o socket\n");
         exit(1);
+    } else {
+        printf("Socket aberto com sucesso\n");
     }
 
     // Set serv_addr
-    bzero((char *) &serv_addr, sizeof(serv_addr));
+    memset(&serv_addr, 0, sizeof(serv_addr));
+    //bzero( (char *) &serv_addr, sizeof(serv_addr) );
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_addr.s_addr = INADDR_ANY;
     serv_addr.sin_port = htons(portno);
 
     // Bind socket to port
-    if ( bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr) ) < 0 ) {
+    if ( bind(sockfd, (struct sockaddr *) &serv_addr, (socklen_t) sizeof(struct sockaddr_in) ) < 0 ) {
         printf("Erro fazendo bind\n");
         exit(1);
+    } else {
+        printf("Bind feito com sucesso na porta %d\n", portno);
     }
 
     // Creates connection
     listen(sockfd, 1);
+    printf("Esperando conexao\n");
     clilen = sizeof(cli_addr);
     newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
 
     if (newsockfd == -1){
         printf("Erro aceitando conexao\n");
+    } else {
+        printf("Conexao estabelecida com sucesso\n");
     }
 
     // Define timers
@@ -154,18 +169,20 @@ int main(int argc, char *argv[]){
     resetState();
 
     // Create simulation threads
-    pthread_create( &(ThreadContainer.updateClutchBite) , NULL, teste, NULL);
-    pthread_create( &(ThreadContainer.updateSpeed) , NULL, teste, NULL);
-    pthread_create( &(ThreadContainer.updateRPM) , NULL, teste, NULL);
-    pthread_create( &(ThreadContainer.updateGear) , NULL, teste, NULL);
-    pthread_create( &(ThreadContainer.updateFuel) , NULL, teste, NULL);
-    pthread_create( &(ThreadContainer.updateBlinkers) , NULL, teste, NULL);
-    pthread_create( &(ThreadContainer.updateHeadlights) , NULL, teste, NULL);
-    pthread_create( &(ThreadContainer.updateBreaklights) , NULL, teste, NULL);
-    pthread_create( &(ThreadContainer.updateReverselights) , NULL, teste, NULL);
-    pthread_create( &(ThreadContainer.updateWipers) , NULL, teste, NULL);
-    pthread_create( &(ThreadContainer.updateInterface) , NULL, teste, NULL);
-    pthread_create( &(ThreadContainer.updateIgnition) , NULL, teste, NULL);
+    pthread_create( &(ThreadContainer.updateClutchBite) , NULL, updateClutchBite, NULL);
+    pthread_create( &(ThreadContainer.updateSpeed) , NULL, updateSpeed, NULL);
+    pthread_create( &(ThreadContainer.updateRPM) , NULL, updateRPM, NULL);
+    pthread_create( &(ThreadContainer.updateGear) , NULL, updateGear, NULL);
+    pthread_create( &(ThreadContainer.updateFuel) , NULL, updateFuel, NULL);
+    pthread_create( &(ThreadContainer.updateBlinkers) , NULL, updateBlinkers, NULL);
+    pthread_create( &(ThreadContainer.updateHeadlights) , NULL, updateHeadlights, NULL);
+    pthread_create( &(ThreadContainer.updateBreaklights) , NULL, updateBreaklights, NULL);
+    pthread_create( &(ThreadContainer.updateReverselights) , NULL, updateReverselights, NULL);
+    pthread_create( &(ThreadContainer.updateWipers) , NULL, updateWipers, NULL);
+    pthread_create( &(ThreadContainer.updateInterface) , NULL, updateInterface, NULL);
+    pthread_create( &(ThreadContainer.updateIgnition) , NULL, updateIgnition, NULL);
+
+    printf("Threads de simulacao criadas com sucesso\n");
 
     while(true){
 
@@ -242,53 +259,53 @@ int main(int argc, char *argv[]){
             strcpy(buffer, "O valor da variavel ");
             strcat(buffer, args[1]);
             strcat(buffer, " e: ");
-           
+
             if(strcmp(args[1], "gaspedalpctg") == 0){
-                itoa(carInterface.GasPedalPctg, printReturn, 10);
+                sprintf(printReturn, "%d", carInterface.GasPedalPctg);
                 strcat(buffer, printReturn);
             }
             else if(strcmp(args[1], "brakepedalpctg") == 0){
-                itoa(carInterface.BrakePedalPctg, printReturn, 10);
+                sprintf(printReturn, "%d", carInterface.BrakePedalPctg);
                 strcat(buffer, printReturn);
             }
             else if(strcmp(args[1], "clutchpedalpctg") == 0){
-                itoa(carInterface.ClutchPedalPctg, printReturn, 10);
+                sprintf(printReturn, "%d", carInterface.ClutchPedalPctg);
                 strcat(buffer, printReturn);
             }
             else if(strcmp(args[1], "gear") == 0){
-                itoa(carInterface.Gear, printReturn, 10);
+                sprintf(printReturn, "%d", carInterface.Gear);
                 strcat(buffer, printReturn);
             }
             else if(strcmp(args[1], "turnsignalpos") == 0){
-                itoa(carInterface.TurnSignalPos, printReturn, 10);
+                sprintf(printReturn, "%d", carInterface.turnSignalPos);
                 strcat(buffer, printReturn);
             }
             else if(strcmp(args[1], "hazardlightsbutton") == 0){
-                itoa(carInterface.HazardLightsButton, printReturn, 10);
+                sprintf(printReturn, "%d", carInterface.HazardLightsButton);
                 strcat(buffer, printReturn);
             }
             else if(strcmp(args[1], "beambuttonpos") == 0){
-                itoa(carInterface.BeamButtonPos, printReturn, 10);
+                sprintf(printReturn, "%d", carInterface.BeamButtonPos);
                 strcat(buffer, printReturn);
             }
             else if(strcmp(args[1], "wiperbuttonpos") == 0){
-                itoa(carInterface.WiperButtonPos, printReturn, 10);
+                sprintf(printReturn, "%d", carInterface.WiperButtonPos);
                 strcat(buffer, printReturn);
             }
             else if(strcmp(args[1], "ignition") == 0){
-                itoa(carInterface.ignition, printReturn, 10);
+                sprintf(printReturn, "%d", carInterface.ignitionState);
                 strcat(buffer, printReturn);
             }
             else if(strcmp(args[1], "tachometer") == 0){
-                itoa(carInterface.tachometer, printReturn, 10);
+                sprintf(printReturn, "%d", carInterface.tachometer);
                 strcat(buffer, printReturn);
             }
             else if(strcmp(args[1], "speedometer") == 0){
-                itoa(carInterface.speedometer, printReturn, 10);
+                sprintf(printReturn, "%d", carInterface.speedometer);
                 strcat(buffer, printReturn);
             }
             else if(strcmp(args[1], "gaspctg") == 0){
-                itoa(carInterface.gaspctg, printReturn, 10);
+                sprintf(printReturn, "%d", carInterface.gasPctg);
                 strcat(buffer, printReturn);
             }
             else{
@@ -305,7 +322,7 @@ int main(int argc, char *argv[]){
         }
 
         else if(strcmp(args[0], "help") == 0){
-            strcpy(buffer, " \n");
+            strcpy(buffer, " ");
             // printf("Comandos validos: ");
             // printf("\n\t Set:        Atribui a variavel deseja o valor desejado (set variavel valor)");
             // printf("\n\t Print:      Retorna ao usuario o valor da variavel desejada (print variavel)");
