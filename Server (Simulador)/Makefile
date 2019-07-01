@@ -1,5 +1,5 @@
 CFLAGS= -pthread -lrt -O2
-TARGETS= CarroPkg.h CarroPkg.c main.c simThreads.c simThreads.h Timer.c Timer.h
+TARGETS= CarroPkg.h CarroPkg.c main.c simThreads.c simThreads.h
 make: $(TARGETS)
 	gcc $(TARGETS) -o Simulador $(CFLAGS)
 clean:

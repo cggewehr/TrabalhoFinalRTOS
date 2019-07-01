@@ -34,7 +34,7 @@ void setParam(){
     carParam.gearRatios[3] = 1.32; // 3nd
     carParam.gearRatios[4] = 1.00; // 4th
     carParam.diffRatio = 3.0;
-    carParam.tyreDiameter = 34.8333333334; // in inches
+    carParam.tyreDiameter = 21; // in inches
 
     carParam.maxRPM = 6000;  // Estimated
     carParam.maxSpeed = 125; // in mph
@@ -52,6 +52,9 @@ void setParam(){
     carParam.WiperIntensityPctg[4] = 100;
 
     carParam.TransmissionLossPctg = 5;
+    
+    carParam.blinkerPeriod = 1; // 1 Second
+    
 }
 
 void resetState(){
@@ -196,7 +199,7 @@ int main(int argc, char *argv[]){
         // Locks mutex to execute given command
         pthread_mutex_lock(&mutex);
 
-        printf("args[0]: %s args[1]: %s args[2]: %s\n", args[0], args[1], args[2]);
+        //printf("args[0]: %s args[1]: %s args[2]: %s\n", args[0], args[1], args[2]);
 
         if(strcmp(args[0], "set") == 0){
 
@@ -228,14 +231,15 @@ int main(int argc, char *argv[]){
                 carInterface.turnSignalPos = atoi(args[2]);
             }
             else if(strcmp(args[1], "hazardlightsbutton") == 0){
-                if(atoi(args[2]) == 1 || strcmp(args[2], "on")){
+                
+                if(strcmp(args[2], "on") == 0){
                     carInterface.HazardLightsButton = true;
                 }
-                else if(atoi(args[2]) == 0 || strcmp(args[2], "off")){
+                else if(strcmp(args[2], "off") == 0){
                     carInterface.HazardLightsButton = false;
                 }
                 else{
-                    strcpy(buffer, "Segundo argumento deve ser 1, 0, \"on\" ou \"off\" "); // Overrides message set before args[1] comparisons
+                    strcpy(buffer, "Segundo argumento deve ser \"on\" ou \"off\" "); // Overrides message set before args[1] comparisons
                 }
             }
             else if(strcmp(args[1], "beambuttonpos") == 0){
@@ -245,26 +249,27 @@ int main(int argc, char *argv[]){
                 carInterface.WiperButtonPos = atoi(args[2]);
             }
             else if(strcmp(args[1], "ignition") == 0){
-                if(atoi(args[2]) == 1 || strcmp(args[2], "on")){
+                
+                if(strcmp(args[2], "on") == 0){
                     carInterface.ignitionState = true;
                 }
-                else if(atoi(args[2]) == 0 || strcmp(args[2], "off")){
+                else if(strcmp(args[2], "off") == 0){
                     carInterface.ignitionState = false;
                 }
                 else{
-                    strcpy(buffer, "Segundo argumento deve ser 1, 0, \"on\" ou \"off\" "); // Overrides message set before args[1] comparisons
+                    strcpy(buffer, "Segundo argumento deve ser \"on\" ou \"off\" "); // Overrides message set before args[1] comparisons
                 }
             }
             else{
-                strcpy(buffer, "Variavel alvo nao reconhecida. Variaveis validas: \n\t GasPedalPctg \n\t BrakePedalPctg \n\t ClutchPedalPctg \n\t Gear \n\t TurnSignalPos \n\t HazardLightsButton \n\t BeamButtonPos \n\t WiperButtonPos \n\t Ignition");
+                strcpy(returnMsg, "Variavel alvo nao reconhecida. Variaveis validas: \n\t GasPedalPctg \n\t BrakePedalPctg \n\t ClutchPedalPctg \n\t Gear \n\t TurnSignalPos \n\t HazardLightsButton \n\t BeamButtonPos \n\t WiperButtonPos \n\t Ignition");
             }
         }
 
         else if(strcmp(args[0], "print") == 0){
 
-            strcpy(returnMsg, "O valor da variavel ");
+            strcpy(returnMsg, "Variavel ");
             strcat(returnMsg, args[1]);
-            strcat(returnMsg, " e: ");
+            strcat(returnMsg, " : ");
 
             if(strcmp(args[1], "gaspedalpctg") == 0){
                 sprintf(printReturn, "%d", carInterface.GasPedalPctg);
@@ -287,7 +292,13 @@ int main(int argc, char *argv[]){
                 strcat(returnMsg, printReturn);
             }
             else if(strcmp(args[1], "hazardlightsbutton") == 0){
-                sprintf(printReturn, "%d", carInterface.HazardLightsButton);
+                
+                if(carInterface.HazardLightsButton){
+                    sprintf(printReturn, "on");
+                } else {
+                    sprintf(printReturn, "off");
+                }
+                
                 strcat(returnMsg, printReturn);
             }
             else if(strcmp(args[1], "beambuttonpos") == 0){
@@ -299,18 +310,24 @@ int main(int argc, char *argv[]){
                 strcat(returnMsg, printReturn);
             }
             else if(strcmp(args[1], "ignition") == 0){
-                sprintf(printReturn, "%d", carInterface.ignitionState);
+                
+                if(carInterface.ignitionState){
+                    sprintf(printReturn, "on");
+                } else {
+                    sprintf(printReturn, "off");
+                }
+                
                 strcat(returnMsg, printReturn);
             }
-            else if(strcmp(args[1], "tachometer") == 0){
+            else if(strcmp(args[1], "tachometer") == 0 || strcmp(args[1], "rpm") == 0){
                 sprintf(printReturn, "%d", carInterface.tachometer);
                 strcat(returnMsg, printReturn);
             }
-            else if(strcmp(args[1], "speedometer") == 0){
+            else if(strcmp(args[1], "speedometer") == 0|| strcmp(args[1], "speed") == 0){
                 sprintf(printReturn, "%d", carInterface.speedometer);
                 strcat(returnMsg, printReturn);
             }
-            else if(strcmp(args[1], "gaspctg") == 0){
+            else if(strcmp(args[1], "gaspctg") == 0|| strcmp(args[1], "gas") == 0){
                 sprintf(printReturn, "%d", carInterface.gasPctg);
                 strcat(returnMsg, printReturn);
             }
@@ -343,7 +360,7 @@ int main(int argc, char *argv[]){
         }
 
         // Send back to client a return message
-        write(newsockfd, returnMsg, strlen(buffer));
+        write(newsockfd, returnMsg, 240);
 
         // Unlocks mutex and waits for next command
         pthread_mutex_unlock(&mutex);

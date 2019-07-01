@@ -72,7 +72,7 @@ int main(int argc, char *argv[]){
             arg0compare[i] = tolower(arg0compare[i]);
         }
         arg0compare[4] = '\0';
-        printf("%s\n", arg0compare);
+        //printf("%s\n", arg0compare);
 
         if(strcmp(arg0compare, "exit") == 0 || strcmp(arg0compare, "quit") == 0){
             break; // Close socket and exit program
